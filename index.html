@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KCV Style Garena CODM Checker</title>
+    <title>AXH Style Garena CODM Checker</title>
     <style>
         * {
             margin: 0;
@@ -125,7 +125,7 @@
             font-weight: bold;
         }
 
-        /* FILE UPLOAD SECTION - FULLY FIXED */
+        /* FILE UPLOAD SECTION */
         #fileInput { display: none; }
         .file-manager-placeholder {
             color: #ccc;
@@ -175,11 +175,11 @@
 
         <!-- TERMINAL SECTION -->
         <div id="terminalSection" class="terminal-section">
-            <div class="terminal-log">[KCV CHECKER] READY TO USE</div>
+            <div class="terminal-log">[AXH CHECKER] READY TO USE</div>
             <div class="terminal-log">[INFO] SELECT FILE VIA FILE MANAGER FIRST</div>
         </div>
 
-        <!-- FILE MANAGER SECTION - FULLY FIXED -->
+        <!-- FILE MANAGER SECTION -->
         <div id="fileManagerSection" class="terminal-section" style="display: none;">
             <div class="file-manager-placeholder">
                 <p>SELECT TXT FILE (FORMAT: username|password)</p>
@@ -249,7 +249,7 @@
             noCodm: 0
         };
 
-        // GET ALL ELEMENTS FIRST (AVOID TARGET ERRORS)
+        // GET ALL ELEMENTS
         const navTerminal = document.getElementById('navTerminal');
         const navFileManager = document.getElementById('navFileManager');
         const navSettings = document.getElementById('navSettings');
@@ -272,19 +272,16 @@
         const statHasCodm = document.getElementById('statHasCodm');
         const statNoCodm = document.getElementById('statNoCodm');
 
-        // SECTION SWITCH FUNCTION - FULLY FIXED
+        // SECTION SWITCH
         function showSection(section) {
-            // Hide all sections
             terminalSection.style.display = 'none';
             fileManagerSection.style.display = 'none';
             settingsSection.style.display = 'none';
             
-            // Remove active class from all nav items
             navTerminal.classList.remove('active');
             navFileManager.classList.remove('active');
             navSettings.classList.remove('active');
 
-            // Show selected section and mark nav as active
             if (section === 'terminal') {
                 terminalSection.style.display = 'block';
                 navTerminal.classList.add('active');
@@ -297,12 +294,12 @@
             }
         }
 
-        // ATTACH NAV CLICK EVENTS
+        // NAV EVENTS
         navTerminal.addEventListener('click', () => showSection('terminal'));
         navFileManager.addEventListener('click', () => showSection('fileManager'));
         navSettings.addEventListener('click', () => showSection('settings'));
 
-        // FILE UPLOAD FUNCTION - FULLY FIXED
+        // FILE UPLOAD
         browseBtn.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', handleFileUpload);
 
@@ -314,7 +311,7 @@
             }
 
             if (file.type !== 'text/plain' && !file.name.endsWith('.txt')) {
-                fileStatus.innerHTML = '<span class="log-error">❌ INVALID FILE TYPE - ONLY .TXT ALLOWED</span>';
+                fileStatus.innerHTML = '<span class="log-error">❌ ONLY .TXT FILES ALLOWED</span>';
                 return;
             }
 
@@ -327,29 +324,25 @@
                     stats.total = accountList.length;
                     updateStats();
                     
-                    fileStatus.innerHTML = `<span style="color: #00FF00;">✅ FILE LOADED: ${file.name} (${stats.total} VALID ACCOUNTS)</span>`;
+                    fileStatus.innerHTML = `<span style="color: #00FF00;">✅ FILE LOADED: ${file.name} (${stats.total} ACCOUNTS)</span>`;
                     currentFileName.textContent = file.name;
-                    addToTerminal(`[FILE] SUCCESS: ${file.name} | ${stats.total} ACCOUNTS DETECTED`);
+                    addToTerminal(`[FILE] LOADED: ${file.name} | ${stats.total} ACCOUNTS DETECTED`);
                 } catch (err) {
-                    fileStatus.innerHTML = '<span class="log-error">❌ ERROR READING FILE - CORRUPTED CONTENT?</span>';
+                    fileStatus.innerHTML = '<span class="log-error">❌ ERROR READING FILE</span>';
                     addToTerminal(`[ERROR] FILE READ FAILED: ${err.message}`, 'error');
                 }
-            };
-            reader.onerror = function() {
-                fileStatus.innerHTML = '<span class="log-error">❌ FAILED TO READ FILE</span>';
-                addToTerminal('[ERROR] FILE READ ERROR - CHECK FILE PERMISSIONS', 'error');
             };
             reader.readAsText(file);
         }
 
-        // PARSE ACCOUNTS FUNCTION
+        // PARSE ACCOUNTS
         function parseAccounts(content) {
             const accounts = [];
             const lines = content.split('\n').map(line => line.trim()).filter(line => line !== '');
             
             lines.forEach((line, index) => {
                 if (!line.includes('|')) {
-                    addToTerminal(`[WARNING] LINE ${index+1}: SKIPPED (INVALID FORMAT - USE username|password)`, 'warning');
+                    addToTerminal(`[WARNING] LINE ${index+1}: INVALID FORMAT (USE username|password)`, 'warning');
                     return;
                 }
 
@@ -357,75 +350,14 @@
                 if (user && pass) {
                     accounts.push({ username: user, password: pass });
                 } else {
-                    addToTerminal(`[WARNING] LINE ${index+1}: SKIPPED (EMPTY USERNAME/PASSWORD)`, 'warning');
+                    addToTerminal(`[WARNING] LINE ${index+1}: EMPTY USERNAME/PASSWORD`, 'warning');
                 }
             });
             return accounts;
         }
 
-        // START CHECKER FUNCTION
+        // START CHECKER
         startBtn.addEventListener('click', startChecker);
         function startChecker() {
             if (accountList.length === 0) {
-                addToTerminal('[ERROR] PLEASE SELECT A .TXT FILE FIRST VIA FILE MANAGER', 'error');
-                return;
-            }
-            if (isRunning) {
-                addToTerminal('[WARNING] CHECKER IS ALREADY RUNNING', 'warning');
-                return;
-            }
-
-            // RESET STATS EXCEPT TOTAL
-            stats.time = 0;
-            stats.valid = 0;
-            stats.invalid = 0;
-            stats.clean = 0;
-            stats.unclean = 0;
-            stats.hasCodm = 0;
-            stats.noCodm = 0;
-            updateStats();
-
-            // START CHECKER
-            isRunning = true;
-            startTime = Date.now();
-            startBtn.style.display = 'none';
-            stopBtn.style.display = 'inline-block';
-            statusText.textContent = 'STATUS: RUNNING';
-            
-            // START TIMER
-            timerInterval = setInterval(() => {
-                stats.time = Math.floor((Date.now() - startTime) / 1000);
-                updateStats();
-            }, 1000);
-
-            // RUN CHECKING SIMULATION
-            simulateChecking();
-        }
-
-        // STOP CHECKER FUNCTION
-        stopBtn.addEventListener('click', stopChecker);
-        function stopChecker() {
-            if (!isRunning) {
-                addToTerminal('[WARNING] CHECKER IS NOT RUNNING', 'warning');
-                return;
-            }
-
-            isRunning = false;
-            clearInterval(timerInterval);
-            startBtn.style.display = 'inline-block';
-            stopBtn.style.display = 'none';
-            statusText.textContent = 'STATUS: STOPPED';
-            addToTerminal('[CHECKER] STOPPED BY USER', 'warning');
-        }
-
-        // SIMULATE CHECKING LOGIC
-        async function simulateChecking() {
-            for (let i = 0; i < accountList.length && isRunning; i++) {
-                const acc = accountList[i];
-                addToTerminal(`[CHECKING] #${i+1}/${stats.total} | USER: ${acc.username}`);
-                
-                // SIMULATE API DELAY
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // RANDOM RESULT
-                const is
+                addToTerminal('[ERROR] SELECT A
