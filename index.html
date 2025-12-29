@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KCV CHECKER</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        body {
+            background-color: #0D0D0D;
+            color: #fff;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 220px;
+            background-color: #1A1A1A;
+            padding: 20px 15px;
+            border-right: 1px solid #2D2D2D;
+        }
+
+        .sidebar .nav-item {
+            color: #ccc;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .sidebar .nav-item.active {
+            background-color: #2D2D2D;
+            color: #00FF00;
+        }
+
+        .sidebar .nav-item:hover {
+            background-color: #2D2D2D;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* TOP CONTROLS */
+        .top-bar {
+            background-color: #1A1A1A;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #2D2D2D;
+        }
+
+        .controls button {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        #startBtn { background-color: #00CC00; color: #000; }
+        #stopBtn { background-color: #CC0000; color: #fff; display: none; }
+        #status { color: #00FF00; font-weight: bold; }
+
+        .file-name { color: #ccc; font-size: 14px; }
+
+        /* TERMINAL SECTION */
+        .terminal-section {
+            flex: 1;
+            padding: 15px 20px;
+            overflow-y: auto;
+            background-color: #0D0D0D;
+        }
+
+        .terminal-log {
+            color: #00FF00;
+            font-size: 13px;
+            margin-bottom: 2px;
+            line-height: 1.4;
+        }
+
+        .log-highlight { color: #00CCFF; }
+
+        /* STATS CARDS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            padding: 15px 20px;
+            background-color: #1A1A1A;
+            border-top: 1px solid #2D2D2D;
+        }
+
+        .stat-card {
+            background-color: #2D2D2D;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #ccc;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #00FF00;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* FILE UPLOAD (HIDDEN BY DEFAULT, TRIGGERED VIA FILE MANAGER) */
+        #fileInput { display: none; }
+        .file-manager-placeholder {
+            color: #ccc;
+            font-size: 14px;
+            padding: 20px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="nav-item active" onclick="showSection('terminal')">Terminal</div>
+        <div class="nav-item" onclick="showSection('fileManager')">File Manager</div>
+        <div class="nav-item" onclick="showSection('settings')">Settings</div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- TOP BAR -->
+        <div class="top-bar">
+            <div class="controls">
+                <button id="startBtn" onclick="startChecker()">START</button>
+                <button id="stopBtn" onclick="stopChecker()">STOP</button>
+                <span id="status">STATUS: IDLE</span>
+            </div>
+            <div class="file-name" id="currentFileName">No file selected</div>
+        </div>
+
+        <!-- TERMINAL SECTION -->
+        <div id="terminalSection" class="terminal-section">
+            <div class="terminal-log">[AXH CHECKER] READY TO USE</div>
+            <div class="terminal-log">[INFO] SELECT FILE VIA FILE MANAGER FIRST</div>
+        </div>
+
+        <!-- FILE MANAGER SECTION (HIDDEN) -->
+        <div id="fileManagerSection" class="terminal-section" style="display: none;">
+            <div class="file-manager-placeholder">
+                <p>CLICK TO SELECT TXT FILE (FORMAT: username|password)</p>
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">BROWSE FILE</button>
+                <input type="file" id="fileInput" accept=".txt">
+                <div id="fileStatus" style="margin-top: 15px; color: #ccc;"></div>
+            </div>
+        </div>
+
+        <!-- SETTINGS SECTION (HIDDEN) -->
+        <div id="settingsSection" class="terminal-section" style="display: none;">
+            <div class="terminal-log">[SETTINGS] COMING SOON</div>
+            <div class="terminal-log">[INFO] NO CONFIGURATIONS NEEDED FOR BASIC USE</div>
+        </div>
+
+        <!-- STATS GRID -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">TOTAL</div>
+                <div class="stat-value" id="statTotal">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">TIME (s)</div>
+                <div class="stat-value" id="statTime">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">VALID</div>
+                <div class="stat-value" id="statValid">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">INVALID</div>
+                <div class="stat-value" id="statInvalid">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">CLEAN</div>
+                <div class="stat-value" id="statClean">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">UNCLEAN</div>
+                <div class="stat-value" id="statUnclean">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">HAS CODM</div>
+                <div class="stat-value" id="statHasCodm">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">NO CODM</div>
+                <div class="stat-value" id="statNoCodm">0</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let accountList = [];
+        let isRunning = false;
+        let startTime = 0;
+        let timerInterval = null;
+        let stats = {
+            total: 0,
+            time: 0,
+            valid: 0,
+            invalid: 0,
+            clean: 0,
+            unclean: 0,
+            hasCodm: 0,
+            noCodm: 0
+        };
+
+        // Switch Sections
+        function showSection(section) {
+            document.getElementById('terminalSection').style.display = 'none';
+            document.getElementById('fileManagerSection').style.display = 'none';
+            document.getElementById('settingsSection').style.display = 'none';
+            
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (section === 'terminal') document.getElementById('terminalSection').style.display = 'block';
+            else if (section === 'fileManager') document.getElementById('fileManagerSection').style.display = 'block';
+            else if (section === 'settings') document.getElementById('settingsSection').style.display = 'block';
+        }
+
+        // Read TXT File
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file || file.type !== 'text/plain') {
+                document.getElementById('fileStatus').innerHTML = '<span style="color: #FF0000;">❌ INVALID FILE TYPE</span>';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const content = event.target.result;
+                accountList = parseAccounts(content);
+                
+                stats.total = accountList.length;
+                updateStats();
+                
+                document.getElementById('fileStatus').innerHTML = `<span style="color: #00FF00;">✅ FILE LOADED: ${file.name} (${stats.total} ACCOUNTS)</span>`;
+                document.getElementById('currentFileName').textContent = file.name;
+                addToTerminal(`[FILE] LOADED: ${file.name} | ${stats.total} ACCOUNTS DETECTED`);
+            };
+            reader.readAsText(file);
+        });
+
+        // Parse Accounts
+        function parseAccounts(content) {
+            const lines = content.split('\n').filter(line => line.trim() !== '');
+            const accounts = [];
+            lines.forEach(line => {
+                if (line.includes('|')) {
+                    const [user, pass] = line.split('|').map(part => part.trim());
+                    if (user && pass) accounts.push({ username: user, password: pass });
+                }
+            });
+            return accounts;
+        }
+
+        // Start Checker
+        function startChecker() {
+            if (accountList.length === 0) {
+                addToTerminal('[ERROR] SELECT A FILE FIRST VIA FILE MANAGER');
+                return;
+            }
+            if (isRunning) return;
+
+            isRunning = true;
+            startTime = Date.now();
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'inline-block';
+            document.getElementById('status').textContent = 'STATUS: RUNNING';
+            
+            // Start Timer
+            timerInterval = setInterval(() => {
+                stats.time = Math.floor((Date.now() - startTime) / 1000);
+                updateStats();
+            }, 1000);
+
+            // Simulate Checking (Replace with real API calls later)
+            simulateChecking();
+        }
+
+        // Stop Checker
+        function stopChecker() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('status').textContent = 'STATUS: STOPPED';
+            addToTerminal('[CHECKER] STOPPED BY USER');
+        }
+
+        // Simulate Checker Logic (MOCK DATA - Replace with real API flow)
+        async function simulateChecking() {
+            for (let i = 0; i < accountList.length && isRunning; i++) {
+                const acc = accountList[i];
+                addToTerminal(`[CHECKING] #${i+1} | USER: ${acc.username}`);
+                
+                // Simulate API Delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Random Mock Result
+                const isSuccess = Math.random() > 0.4;
+                if (isSuccess) {
+                    stats.valid++;
+                    const hasCodm = Math.random() > 0.1;
+                    const isClean = Math.random() > 0.3;
+                    
+                    if (hasCodm) stats.hasCodm++;
+                    else stats.noCodm++;
+                    if (isClean) stats.clean++;
+                    else stats.unclean++;
+
+                    // Mock CODM Details
+                    addToTerminal(`[VALID] ${acc.username}`);
+                    addToTerminal(`  ├─ GARENA SHELLS: 0`);
+                    addToTerminal(`  ├─ AVATAR URL: https://example.com/avatar.jpg`);
+                    addToTerminal(`  ├─ MOBILE: ****4821`);
+                    addToTerminal(`  ├─ EMAIL: ****@gmail.com (${Math.random()>0.5?'VERIFIED':'NOT VERIFIED'})`);
+                    addToTerminal(`  ├─ GAME CONNECTIONS: [ CODM ]`);
+                    addToTerminal(`  ├─ ────────────────────`);
+                    addToTerminal(`  ├─ CODM NICKNAME: ${generateRandomNick()}`);
+                    addToTerminal(`  ├─ CODM UID: ${Math.floor(Math.random()*9000000)+1000000}`);
+                    addToTerminal(`  ├─ CODM LEVEL: ${Math.floor(Math.random()*300)+1}`);
+                    addToTerminal(`  ├─ ────────────────────`);
+                    addToTerminal(`  ├─ MOBILE BOUND: ${Math.random()>0.5?'YES':'NO'}`);
+                    addToTerminal(`  ├─ EMAIL VERIFIED: ${Math.random()>0.5?'TRUE':'FALSE'}`);
+                    addToTerminal(`  ├─ ACCOUNT STATUS: ${isClean?'CLEAN':'UNCLEAN'}`);
+                } else {
+                    stats.invalid++;
+                    addToTerminal(`[INVALID] ${acc.username} | ERROR: WRONG CREDENTIALS`);
+                }
+                updateStats();
+            }
+
+            // Finish Checking
+            if (isRunning) {
+                stopChecker();
+                document.getElementById('status').textContent = 'STATUS: COMPLETED';
+                addToTerminal('[CHECKER] ALL ACCOUNTS PROCESSED');
+            }
+        }
+
+        // Helper: Generate Random Nickname
+        function generateRandomNick() {
+            const prefixes = ['PAIN_', 'COD_', 'PRO_', 'NOOB_', 'KING_'];
+            const suffixes = ['PLAY', 'GAMER', '123', 'X', 'Z'];
+            return prefixes[Math.floor(Math.random()*prefixes.length)] + suffixes[Math.floor(Math.random()*suffixes.length)];
+        }
+
+        // Add Line to Terminal
+        function addToTerminal(text) {
+            const terminal = document.getElementById('terminalSection');
+            const log = document.createElement('div');
+            log.className = 'terminal-log';
+            log.textContent = text;
+            terminal.appendChild(log);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // Update Stats Cards
+        function updateStats() {
+            document.getElementById('statTotal').textContent = stats.total;
+            document.getElementById('statTime').textContent = stats.time;
+            document.getElementById('statValid').textContent = stats.valid;
+            document.getElementById('statInvalid').textContent = stats.invalid;
+            document.getElementById('statClean').textContent = stats.clean;
+            document.getElementById('statUnclean').textContent = stats.unclean;
+            document.getElementById('statHasCodm').textContent = stats.hasCodm;
+            document.getElementById('statNoCodm').textContent = stats.noCodm;
+        }
+    </script>
+</body>
+</html>
