@@ -2,48 +2,49 @@
 <html lang="fil">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AXH Style Garena CODM Checker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AXH CODM Checker</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Consolas', 'Courier New', monospace;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         body {
             background-color: #0D0D0D;
             color: #fff;
             display: flex;
+            flex-direction: column;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* SIDEBAR */
-        .sidebar {
-            width: 220px;
+        /* TOP NAV */
+        .top-nav {
             background-color: #1A1A1A;
-            padding: 20px 15px;
-            border-right: 1px solid #2D2D2D;
+            display: flex;
+            padding: 10px 5px;
+            border-bottom: 1px solid #2D2D2D;
+            overflow-x: auto;
         }
 
-        .sidebar .nav-item {
+        .nav-item {
             color: #ccc;
-            padding: 10px;
-            margin-bottom: 8px;
+            padding: 8px 15px;
+            margin: 0 3px;
             border-radius: 4px;
             cursor: pointer;
-            transition: background 0.2s;
+            white-space: nowrap;
+            font-size: 14px;
         }
 
-        .sidebar .nav-item.active {
+        .nav-item.active {
             background-color: #2D2D2D;
             color: #00FF00;
-        }
-
-        .sidebar .nav-item:hover {
-            background-color: #2D2D2D;
         }
 
         /* MAIN CONTENT */
@@ -53,117 +54,115 @@
             flex-direction: column;
         }
 
-        /* TOP CONTROLS */
+        /* TOP BAR */
         .top-bar {
             background-color: #1A1A1A;
-            padding: 15px 20px;
+            padding: 10px 15px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid #2D2D2D;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .controls button {
-            padding: 8px 20px;
+            padding: 8px 18px;
             border: none;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
-            margin-right: 10px;
+            font-size: 14px;
         }
 
         #startBtn { background-color: #00CC00; color: #000; }
         #stopBtn { background-color: #CC0000; color: #fff; display: none; }
-        #status { color: #00FF00; font-weight: bold; }
+        #status { color: #00FF00; font-weight: bold; font-size: 13px; }
 
-        .file-name { color: #ccc; font-size: 14px; }
+        .file-name { color: #ccc; font-size: 12px; }
 
-        /* TERMINAL SECTION */
+        /* TERMINAL */
         .terminal-section {
             flex: 1;
-            padding: 15px 20px;
+            padding: 10px 15px;
             overflow-y: auto;
             background-color: #0D0D0D;
+            font-size: 12px;
         }
 
         .terminal-log {
             color: #00FF00;
-            font-size: 13px;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
             line-height: 1.4;
         }
 
         .log-error { color: #FF0000; }
         .log-warning { color: #FFCC00; }
 
-        /* STATS CARDS */
+        /* STATS */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            padding: 15px 20px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 10px 15px;
             background-color: #1A1A1A;
             border-top: 1px solid #2D2D2D;
         }
 
         .stat-card {
             background-color: #2D2D2D;
-            padding: 15px;
+            padding: 10px;
             border-radius: 4px;
             text-align: center;
         }
 
         .stat-label {
             color: #ccc;
-            font-size: 12px;
-            margin-bottom: 5px;
+            font-size: 11px;
+            margin-bottom: 3px;
         }
 
         .stat-value {
             color: #00FF00;
-            font-size: 22px;
+            font-size: 18px;
             font-weight: bold;
         }
 
-        /* FILE UPLOAD SECTION */
+        /* FILE UPLOAD */
         #fileInput { display: none; }
         .file-manager-placeholder {
             color: #ccc;
-            font-size: 14px;
-            padding: 40px 20px;
+            font-size: 13px;
+            padding: 30px 15px;
             text-align: center;
         }
+
         .upload-btn {
             background-color: #00CC00;
             color: #000;
-            padding: 10px 25px;
+            padding: 10px 20px;
             border: none;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
             margin-top: 20px;
-            transition: background 0.2s;
-        }
-        .upload-btn:hover {
-            background-color: #00FF00;
-        }
-        #fileStatus {
-            margin-top: 20px;
             font-size: 14px;
+        }
+
+        #fileStatus {
+            margin-top: 15px;
+            font-size: 13px;
         }
     </style>
 </head>
 <body>
-    <!-- SIDEBAR -->
-    <div class="sidebar">
+    <div class="top-nav">
         <div class="nav-item active" id="navTerminal">Terminal</div>
         <div class="nav-item" id="navFileManager">File Manager</div>
         <div class="nav-item" id="navSettings">Settings</div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="main-content">
-        <!-- TOP BAR -->
         <div class="top-bar">
             <div class="controls">
                 <button id="startBtn">START</button>
@@ -173,29 +172,26 @@
             <div class="file-name" id="currentFileName">No file selected</div>
         </div>
 
-        <!-- TERMINAL SECTION -->
         <div id="terminalSection" class="terminal-section">
             <div class="terminal-log">[AXH CHECKER] READY TO USE</div>
-            <div class="terminal-log">[INFO] SELECT FILE VIA FILE MANAGER FIRST</div>
+            <div class="terminal-log">[INFO] SELECT FILE VIA FILE MANAGER</div>
         </div>
 
-        <!-- FILE MANAGER SECTION -->
         <div id="fileManagerSection" class="terminal-section" style="display: none;">
             <div class="file-manager-placeholder">
-                <p>SELECT TXT FILE (FORMAT: username|password)</p>
+                <p>TAP TO SELECT .TXT FILE</p>
+                <p>(FORMAT: username|password)</p>
                 <button class="upload-btn" id="browseBtn">BROWSE FILE</button>
                 <input type="file" id="fileInput" accept=".txt">
                 <div id="fileStatus"></div>
             </div>
         </div>
 
-        <!-- SETTINGS SECTION -->
         <div id="settingsSection" class="terminal-section" style="display: none;">
-            <div class="terminal-log">[SETTINGS] COMING SOON</div>
-            <div class="terminal-log">[INFO] NO CONFIGURATIONS NEEDED FOR BASIC USE</div>
+            <div class="terminal-log">[SETTINGS] READY</div>
+            <div class="terminal-log">[INFO] NO SETUP NEEDED</div>
         </div>
 
-        <!-- STATS GRID -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">TOTAL</div>
@@ -233,23 +229,17 @@
     </div>
 
     <script>
-        // GLOBAL VARIABLES
+        // GLOBAL VARS
         let accountList = [];
         let isRunning = false;
         let startTime = 0;
         let timerInterval = null;
         let stats = {
-            total: 0,
-            time: 0,
-            valid: 0,
-            invalid: 0,
-            clean: 0,
-            unclean: 0,
-            hasCodm: 0,
-            noCodm: 0
+            total: 0, time: 0, valid: 0, invalid: 0,
+            clean: 0, unclean: 0, hasCodm: 0, noCodm: 0
         };
 
-        // GET ALL ELEMENTS
+        // GET ELEMENTS
         const navTerminal = document.getElementById('navTerminal');
         const navFileManager = document.getElementById('navFileManager');
         const navSettings = document.getElementById('navSettings');
@@ -272,7 +262,7 @@
         const statHasCodm = document.getElementById('statHasCodm');
         const statNoCodm = document.getElementById('statNoCodm');
 
-        // SECTION SWITCH
+        // SWITCH SECTIONS
         function showSection(section) {
             terminalSection.style.display = 'none';
             fileManagerSection.style.display = 'none';
@@ -310,8 +300,8 @@
                 return;
             }
 
-            if (file.type !== 'text/plain' && !file.name.endsWith('.txt')) {
-                fileStatus.innerHTML = '<span class="log-error">❌ ONLY .TXT FILES ALLOWED</span>';
+            if (!file.name.endsWith('.txt')) {
+                fileStatus.innerHTML = '<span class="log-error">❌ ONLY .TXT ALLOWED</span>';
                 return;
             }
 
@@ -326,10 +316,10 @@
                     
                     fileStatus.innerHTML = `<span style="color: #00FF00;">✅ FILE LOADED: ${file.name} (${stats.total} ACCOUNTS)</span>`;
                     currentFileName.textContent = file.name;
-                    addToTerminal(`[FILE] LOADED: ${file.name} | ${stats.total} ACCOUNTS DETECTED`);
+                    addToTerminal(`[FILE] LOADED: ${file.name} | ${stats.total} ACCOUNTS`);
                 } catch (err) {
-                    fileStatus.innerHTML = '<span class="log-error">❌ ERROR READING FILE</span>';
-                    addToTerminal(`[ERROR] FILE READ FAILED: ${err.message}`, 'error');
+                    fileStatus.innerHTML = '<span class="log-error">❌ FILE READ ERROR</span>';
+                    addToTerminal(`[ERROR] ${err.message}`, 'error');
                 }
             };
             reader.readAsText(file);
@@ -338,11 +328,11 @@
         // PARSE ACCOUNTS
         function parseAccounts(content) {
             const accounts = [];
-            const lines = content.split('\n').map(line => line.trim()).filter(line => line !== '');
+            const lines = content.split('\n').map(line => line.trim()).filter(line => line);
             
             lines.forEach((line, index) => {
                 if (!line.includes('|')) {
-                    addToTerminal(`[WARNING] LINE ${index+1}: INVALID FORMAT (USE username|password)`, 'warning');
+                    addToTerminal(`[WARNING] LINE ${index+1}: WRONG FORMAT`, 'warning');
                     return;
                 }
 
@@ -350,14 +340,73 @@
                 if (user && pass) {
                     accounts.push({ username: user, password: pass });
                 } else {
-                    addToTerminal(`[WARNING] LINE ${index+1}: EMPTY USERNAME/PASSWORD`, 'warning');
+                    addToTerminal(`[WARNING] LINE ${index+1}: EMPTY DETAILS`, 'warning');
                 }
             });
             return accounts;
+        }
+
+        // ADD TO TERMINAL
+        function addToTerminal(text, type = 'normal') {
+            const log = document.createElement('div');
+            log.className = type === 'error' ? 'terminal-log log-error' : 
+                           type === 'warning' ? 'terminal-log log-warning' : 'terminal-log';
+            log.textContent = text;
+            terminalSection.appendChild(log);
+            terminalSection.scrollTop = terminalSection.scrollHeight;
+        }
+
+        // UPDATE STATS
+        function updateStats() {
+            statTotal.textContent = stats.total;
+            statTime.textContent = stats.time;
+            statValid.textContent = stats.valid;
+            statInvalid.textContent = stats.invalid;
+            statClean.textContent = stats.clean;
+            statUnclean.textContent = stats.unclean;
+            statHasCodm.textContent = stats.hasCodm;
+            statNoCodm.textContent = stats.noCodm;
         }
 
         // START CHECKER
         startBtn.addEventListener('click', startChecker);
         function startChecker() {
             if (accountList.length === 0) {
-                addToTerminal('[ERROR] SELECT A
+                addToTerminal('[ERROR] UPLOAD A TXT FILE FIRST!', 'error');
+                return;
+            }
+            if (isRunning) return;
+
+            stats.time = 0; stats.valid = 0; stats.invalid = 0;
+            stats.clean = 0; stats.unclean = 0; stats.hasCodm = 0; stats.noCodm = 0;
+            updateStats();
+
+            isRunning = true;
+            startTime = Date.now();
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'inline-block';
+            statusText.textContent = 'STATUS: RUNNING';
+            
+            timerInterval = setInterval(() => {
+                stats.time = Math.floor((Date.now() - startTime) / 1000);
+                updateStats();
+            }, 1000);
+
+            simulateChecking();
+        }
+
+        // STOP CHECKER
+        stopBtn.addEventListener('click', stopChecker);
+        function stopChecker() {
+            if (!isRunning) return;
+            isRunning = false;
+            clearInterval(timerInterval);
+            startBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
+            statusText.textContent = 'STATUS: STOPPED';
+            addToTerminal('[CHECKER] STOPPED BY USER', 'warning');
+        }
+
+        // SIMULATE CHECKING
+        async function simulateChecking() {
+            for (let i = 0;
