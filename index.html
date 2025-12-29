@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KCV CHECKER</title>
+    <title>AXH Style Garena CODM Checker</title>
     <style>
         * {
             margin: 0;
@@ -124,14 +124,31 @@
             font-weight: bold;
         }
 
-        /* FILE UPLOAD (HIDDEN BY DEFAULT, TRIGGERED VIA FILE MANAGER) */
+        /* FILE UPLOAD SECTION */
         #fileInput { display: none; }
         .file-manager-placeholder {
             color: #ccc;
             font-size: 14px;
             padding: 20px;
             text-align: center;
-            display: none;
+        }
+        .upload-btn {
+            background-color: #00CC00;
+            color: #000;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+        .upload-btn:hover {
+            background-color: #00FF00;
+        }
+        #fileStatus {
+            margin-top: 15px;
+            font-size: 13px;
         }
     </style>
 </head>
@@ -161,17 +178,17 @@
             <div class="terminal-log">[INFO] SELECT FILE VIA FILE MANAGER FIRST</div>
         </div>
 
-        <!-- FILE MANAGER SECTION (HIDDEN) -->
+        <!-- FILE MANAGER SECTION (FIXED) -->
         <div id="fileManagerSection" class="terminal-section" style="display: none;">
             <div class="file-manager-placeholder">
                 <p>CLICK TO SELECT TXT FILE (FORMAT: username|password)</p>
                 <button class="upload-btn" onclick="document.getElementById('fileInput').click()">BROWSE FILE</button>
                 <input type="file" id="fileInput" accept=".txt">
-                <div id="fileStatus" style="margin-top: 15px; color: #ccc;"></div>
+                <div id="fileStatus"></div>
             </div>
         </div>
 
-        <!-- SETTINGS SECTION (HIDDEN) -->
+        <!-- SETTINGS SECTION -->
         <div id="settingsSection" class="terminal-section" style="display: none;">
             <div class="terminal-log">[SETTINGS] COMING SOON</div>
             <div class="terminal-log">[INFO] NO CONFIGURATIONS NEEDED FOR BASIC USE</div>
@@ -231,25 +248,32 @@
             noCodm: 0
         };
 
-        // Switch Sections
+        // Switch Sections (FIXED)
         function showSection(section) {
+            // Hide all sections first
             document.getElementById('terminalSection').style.display = 'none';
             document.getElementById('fileManagerSection').style.display = 'none';
             document.getElementById('settingsSection').style.display = 'none';
             
+            // Remove active class from all nav items
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             event.target.classList.add('active');
 
-            if (section === 'terminal') document.getElementById('terminalSection').style.display = 'block';
-            else if (section === 'fileManager') document.getElementById('fileManagerSection').style.display = 'block';
-            else if (section === 'settings') document.getElementById('settingsSection').style.display = 'block';
+            // Show selected section
+            if (section === 'terminal') {
+                document.getElementById('terminalSection').style.display = 'block';
+            } else if (section === 'fileManager') {
+                document.getElementById('fileManagerSection').style.display = 'block';
+            } else if (section === 'settings') {
+                document.getElementById('settingsSection').style.display = 'block';
+            }
         }
 
-        // Read TXT File
+        // Read TXT File (FIXED)
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file || file.type !== 'text/plain') {
-                document.getElementById('fileStatus').innerHTML = '<span style="color: #FF0000;">❌ INVALID FILE TYPE</span>';
+                document.getElementById('fileStatus').innerHTML = '<span style="color: #FF0000;">❌ INVALID FILE TYPE - USE .TXT ONLY</span>';
                 return;
             }
 
@@ -261,7 +285,7 @@
                 stats.total = accountList.length;
                 updateStats();
                 
-                document.getElementById('fileStatus').innerHTML = `<span style="color: #00FF00;">✅ FILE LOADED: ${file.name} (${stats.total} ACCOUNTS)</span>`;
+                document.getElementById('fileStatus').innerHTML = `<span style="color: #00FF00;">✅ FILE LOADED: ${file.name} (${stats.total} ACCOUNTS DETECTED)</span>`;
                 document.getElementById('currentFileName').textContent = file.name;
                 addToTerminal(`[FILE] LOADED: ${file.name} | ${stats.total} ACCOUNTS DETECTED`);
             };
@@ -276,6 +300,8 @@
                 if (line.includes('|')) {
                     const [user, pass] = line.split('|').map(part => part.trim());
                     if (user && pass) accounts.push({ username: user, password: pass });
+                } else {
+                    addToTerminal(`[WARNING] SKIPPING INVALID LINE: ${line.trim()}`);
                 }
             });
             return accounts;
@@ -301,7 +327,7 @@
                 updateStats();
             }, 1000);
 
-            // Simulate Checking (Replace with real API calls later)
+            // Simulate Checking
             simulateChecking();
         }
 
@@ -315,7 +341,7 @@
             addToTerminal('[CHECKER] STOPPED BY USER');
         }
 
-        // Simulate Checker Logic (MOCK DATA - Replace with real API flow)
+        // Simulate Checker Logic
         async function simulateChecking() {
             for (let i = 0; i < accountList.length && isRunning; i++) {
                 const acc = accountList[i];
@@ -340,8 +366,8 @@
                     addToTerminal(`[VALID] ${acc.username}`);
                     addToTerminal(`  ├─ GARENA SHELLS: 0`);
                     addToTerminal(`  ├─ AVATAR URL: https://example.com/avatar.jpg`);
-                    addToTerminal(`  ├─ MOBILE: ****4821`);
-                    addToTerminal(`  ├─ EMAIL: ****@gmail.com (${Math.random()>0.5?'VERIFIED':'NOT VERIFIED'})`);
+                    addToTerminal(`  ├─ MOBILE: ****${Math.floor(Math.random()*9000)+1000}`);
+                    addToTerminal(`  ├─ EMAIL: ****@${Math.random()>0.5?'gmail':'yahoo'}.com (${Math.random()>0.5?'VERIFIED':'NOT VERIFIED'})`);
                     addToTerminal(`  ├─ GAME CONNECTIONS: [ CODM ]`);
                     addToTerminal(`  ├─ ────────────────────`);
                     addToTerminal(`  ├─ CODM NICKNAME: ${generateRandomNick()}`);
@@ -353,7 +379,7 @@
                     addToTerminal(`  ├─ ACCOUNT STATUS: ${isClean?'CLEAN':'UNCLEAN'}`);
                 } else {
                     stats.invalid++;
-                    addToTerminal(`[INVALID] ${acc.username} | ERROR: WRONG CREDENTIALS`);
+                    addToTerminal(`[INVALID] ${acc.username} | ERROR: ${Math.random()>0.5?'WRONG CREDENTIALS':'ACCOUNT NOT FOUND'}`);
                 }
                 updateStats();
             }
@@ -368,8 +394,8 @@
 
         // Helper: Generate Random Nickname
         function generateRandomNick() {
-            const prefixes = ['PAIN_', 'COD_', 'PRO_', 'NOOB_', 'KING_'];
-            const suffixes = ['PLAY', 'GAMER', '123', 'X', 'Z'];
+            const prefixes = ['PAIN_', 'COD_', 'PRO_', 'NOOB_', 'KING_', 'QUEEN_', 'BOSS_'];
+            const suffixes = ['PLAY', 'GAMER', '123', 'X', 'Z', '99', 'PRO'];
             return prefixes[Math.floor(Math.random()*prefixes.length)] + suffixes[Math.floor(Math.random()*suffixes.length)];
         }
 
@@ -388,12 +414,3 @@
             document.getElementById('statTotal').textContent = stats.total;
             document.getElementById('statTime').textContent = stats.time;
             document.getElementById('statValid').textContent = stats.valid;
-            document.getElementById('statInvalid').textContent = stats.invalid;
-            document.getElementById('statClean').textContent = stats.clean;
-            document.getElementById('statUnclean').textContent = stats.unclean;
-            document.getElementById('statHasCodm').textContent = stats.hasCodm;
-            document.getElementById('statNoCodm').textContent = stats.noCodm;
-        }
-    </script>
-</body>
-</html>
