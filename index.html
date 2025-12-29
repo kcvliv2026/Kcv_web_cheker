@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AXH Style Garena CODM Checker</title>
+    <title>KCV Style Garena CODM Checker</title>
     <style>
         * {
             margin: 0;
@@ -93,7 +93,8 @@
             line-height: 1.4;
         }
 
-        .log-highlight { color: #00CCFF; }
+        .log-error { color: #FF0000; }
+        .log-warning { color: #FFCC00; }
 
         /* STATS CARDS */
         .stats-grid {
@@ -124,40 +125,40 @@
             font-weight: bold;
         }
 
-        /* FILE UPLOAD SECTION */
+        /* FILE UPLOAD SECTION - FULLY FIXED */
         #fileInput { display: none; }
         .file-manager-placeholder {
             color: #ccc;
             font-size: 14px;
-            padding: 20px;
+            padding: 40px 20px;
             text-align: center;
         }
         .upload-btn {
             background-color: #00CC00;
             color: #000;
-            padding: 8px 20px;
+            padding: 10px 25px;
             border: none;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 15px;
+            margin-top: 20px;
             transition: background 0.2s;
         }
         .upload-btn:hover {
             background-color: #00FF00;
         }
         #fileStatus {
-            margin-top: 15px;
-            font-size: 13px;
+            margin-top: 20px;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
     <!-- SIDEBAR -->
     <div class="sidebar">
-        <div class="nav-item active" onclick="showSection('terminal')">Terminal</div>
-        <div class="nav-item" onclick="showSection('fileManager')">File Manager</div>
-        <div class="nav-item" onclick="showSection('settings')">Settings</div>
+        <div class="nav-item active" id="navTerminal">Terminal</div>
+        <div class="nav-item" id="navFileManager">File Manager</div>
+        <div class="nav-item" id="navSettings">Settings</div>
     </div>
 
     <!-- MAIN CONTENT -->
@@ -165,8 +166,8 @@
         <!-- TOP BAR -->
         <div class="top-bar">
             <div class="controls">
-                <button id="startBtn" onclick="startChecker()">START</button>
-                <button id="stopBtn" onclick="stopChecker()">STOP</button>
+                <button id="startBtn">START</button>
+                <button id="stopBtn">STOP</button>
                 <span id="status">STATUS: IDLE</span>
             </div>
             <div class="file-name" id="currentFileName">No file selected</div>
@@ -174,15 +175,15 @@
 
         <!-- TERMINAL SECTION -->
         <div id="terminalSection" class="terminal-section">
-            <div class="terminal-log">[AXH CHECKER] READY TO USE</div>
+            <div class="terminal-log">[KCV CHECKER] READY TO USE</div>
             <div class="terminal-log">[INFO] SELECT FILE VIA FILE MANAGER FIRST</div>
         </div>
 
-        <!-- FILE MANAGER SECTION (FIXED) -->
+        <!-- FILE MANAGER SECTION - FULLY FIXED -->
         <div id="fileManagerSection" class="terminal-section" style="display: none;">
             <div class="file-manager-placeholder">
-                <p>CLICK TO SELECT TXT FILE (FORMAT: username|password)</p>
-                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">BROWSE FILE</button>
+                <p>SELECT TXT FILE (FORMAT: username|password)</p>
+                <button class="upload-btn" id="browseBtn">BROWSE FILE</button>
                 <input type="file" id="fileInput" accept=".txt">
                 <div id="fileStatus"></div>
             </div>
@@ -232,7 +233,7 @@
     </div>
 
     <script>
-        // Global Variables
+        // GLOBAL VARIABLES
         let accountList = [];
         let isRunning = false;
         let startTime = 0;
@@ -248,169 +249,183 @@
             noCodm: 0
         };
 
-        // Switch Sections (FIXED)
+        // GET ALL ELEMENTS FIRST (AVOID TARGET ERRORS)
+        const navTerminal = document.getElementById('navTerminal');
+        const navFileManager = document.getElementById('navFileManager');
+        const navSettings = document.getElementById('navSettings');
+        const terminalSection = document.getElementById('terminalSection');
+        const fileManagerSection = document.getElementById('fileManagerSection');
+        const settingsSection = document.getElementById('settingsSection');
+        const browseBtn = document.getElementById('browseBtn');
+        const fileInput = document.getElementById('fileInput');
+        const fileStatus = document.getElementById('fileStatus');
+        const currentFileName = document.getElementById('currentFileName');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusText = document.getElementById('status');
+        const statTotal = document.getElementById('statTotal');
+        const statTime = document.getElementById('statTime');
+        const statValid = document.getElementById('statValid');
+        const statInvalid = document.getElementById('statInvalid');
+        const statClean = document.getElementById('statClean');
+        const statUnclean = document.getElementById('statUnclean');
+        const statHasCodm = document.getElementById('statHasCodm');
+        const statNoCodm = document.getElementById('statNoCodm');
+
+        // SECTION SWITCH FUNCTION - FULLY FIXED
         function showSection(section) {
-            // Hide all sections first
-            document.getElementById('terminalSection').style.display = 'none';
-            document.getElementById('fileManagerSection').style.display = 'none';
-            document.getElementById('settingsSection').style.display = 'none';
+            // Hide all sections
+            terminalSection.style.display = 'none';
+            fileManagerSection.style.display = 'none';
+            settingsSection.style.display = 'none';
             
             // Remove active class from all nav items
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            event.target.classList.add('active');
+            navTerminal.classList.remove('active');
+            navFileManager.classList.remove('active');
+            navSettings.classList.remove('active');
 
-            // Show selected section
+            // Show selected section and mark nav as active
             if (section === 'terminal') {
-                document.getElementById('terminalSection').style.display = 'block';
+                terminalSection.style.display = 'block';
+                navTerminal.classList.add('active');
             } else if (section === 'fileManager') {
-                document.getElementById('fileManagerSection').style.display = 'block';
+                fileManagerSection.style.display = 'block';
+                navFileManager.classList.add('active');
             } else if (section === 'settings') {
-                document.getElementById('settingsSection').style.display = 'block';
+                settingsSection.style.display = 'block';
+                navSettings.classList.add('active');
             }
         }
 
-        // Read TXT File (FIXED)
-        document.getElementById('fileInput').addEventListener('change', function(e) {
+        // ATTACH NAV CLICK EVENTS
+        navTerminal.addEventListener('click', () => showSection('terminal'));
+        navFileManager.addEventListener('click', () => showSection('fileManager'));
+        navSettings.addEventListener('click', () => showSection('settings'));
+
+        // FILE UPLOAD FUNCTION - FULLY FIXED
+        browseBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(e) {
             const file = e.target.files[0];
-            if (!file || file.type !== 'text/plain') {
-                document.getElementById('fileStatus').innerHTML = '<span style="color: #FF0000;">❌ INVALID FILE TYPE - USE .TXT ONLY</span>';
+            if (!file) {
+                fileStatus.innerHTML = '<span class="log-error">❌ NO FILE SELECTED</span>';
+                return;
+            }
+
+            if (file.type !== 'text/plain' && !file.name.endsWith('.txt')) {
+                fileStatus.innerHTML = '<span class="log-error">❌ INVALID FILE TYPE - ONLY .TXT ALLOWED</span>';
                 return;
             }
 
             const reader = new FileReader();
             reader.onload = function(event) {
-                const content = event.target.result;
-                accountList = parseAccounts(content);
-                
-                stats.total = accountList.length;
-                updateStats();
-                
-                document.getElementById('fileStatus').innerHTML = `<span style="color: #00FF00;">✅ FILE LOADED: ${file.name} (${stats.total} ACCOUNTS DETECTED)</span>`;
-                document.getElementById('currentFileName').textContent = file.name;
-                addToTerminal(`[FILE] LOADED: ${file.name} | ${stats.total} ACCOUNTS DETECTED`);
+                try {
+                    const content = event.target.result;
+                    accountList = parseAccounts(content);
+                    
+                    stats.total = accountList.length;
+                    updateStats();
+                    
+                    fileStatus.innerHTML = `<span style="color: #00FF00;">✅ FILE LOADED: ${file.name} (${stats.total} VALID ACCOUNTS)</span>`;
+                    currentFileName.textContent = file.name;
+                    addToTerminal(`[FILE] SUCCESS: ${file.name} | ${stats.total} ACCOUNTS DETECTED`);
+                } catch (err) {
+                    fileStatus.innerHTML = '<span class="log-error">❌ ERROR READING FILE - CORRUPTED CONTENT?</span>';
+                    addToTerminal(`[ERROR] FILE READ FAILED: ${err.message}`, 'error');
+                }
+            };
+            reader.onerror = function() {
+                fileStatus.innerHTML = '<span class="log-error">❌ FAILED TO READ FILE</span>';
+                addToTerminal('[ERROR] FILE READ ERROR - CHECK FILE PERMISSIONS', 'error');
             };
             reader.readAsText(file);
-        });
+        }
 
-        // Parse Accounts
+        // PARSE ACCOUNTS FUNCTION
         function parseAccounts(content) {
-            const lines = content.split('\n').filter(line => line.trim() !== '');
             const accounts = [];
-            lines.forEach(line => {
-                if (line.includes('|')) {
-                    const [user, pass] = line.split('|').map(part => part.trim());
-                    if (user && pass) accounts.push({ username: user, password: pass });
+            const lines = content.split('\n').map(line => line.trim()).filter(line => line !== '');
+            
+            lines.forEach((line, index) => {
+                if (!line.includes('|')) {
+                    addToTerminal(`[WARNING] LINE ${index+1}: SKIPPED (INVALID FORMAT - USE username|password)`, 'warning');
+                    return;
+                }
+
+                const [user, pass] = line.split('|').map(part => part.trim());
+                if (user && pass) {
+                    accounts.push({ username: user, password: pass });
                 } else {
-                    addToTerminal(`[WARNING] SKIPPING INVALID LINE: ${line.trim()}`);
+                    addToTerminal(`[WARNING] LINE ${index+1}: SKIPPED (EMPTY USERNAME/PASSWORD)`, 'warning');
                 }
             });
             return accounts;
         }
 
-        // Start Checker
+        // START CHECKER FUNCTION
+        startBtn.addEventListener('click', startChecker);
         function startChecker() {
             if (accountList.length === 0) {
-                addToTerminal('[ERROR] SELECT A FILE FIRST VIA FILE MANAGER');
+                addToTerminal('[ERROR] PLEASE SELECT A .TXT FILE FIRST VIA FILE MANAGER', 'error');
                 return;
             }
-            if (isRunning) return;
+            if (isRunning) {
+                addToTerminal('[WARNING] CHECKER IS ALREADY RUNNING', 'warning');
+                return;
+            }
 
+            // RESET STATS EXCEPT TOTAL
+            stats.time = 0;
+            stats.valid = 0;
+            stats.invalid = 0;
+            stats.clean = 0;
+            stats.unclean = 0;
+            stats.hasCodm = 0;
+            stats.noCodm = 0;
+            updateStats();
+
+            // START CHECKER
             isRunning = true;
             startTime = Date.now();
-            document.getElementById('startBtn').style.display = 'none';
-            document.getElementById('stopBtn').style.display = 'inline-block';
-            document.getElementById('status').textContent = 'STATUS: RUNNING';
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'inline-block';
+            statusText.textContent = 'STATUS: RUNNING';
             
-            // Start Timer
+            // START TIMER
             timerInterval = setInterval(() => {
                 stats.time = Math.floor((Date.now() - startTime) / 1000);
                 updateStats();
             }, 1000);
 
-            // Simulate Checking
+            // RUN CHECKING SIMULATION
             simulateChecking();
         }
 
-        // Stop Checker
+        // STOP CHECKER FUNCTION
+        stopBtn.addEventListener('click', stopChecker);
         function stopChecker() {
+            if (!isRunning) {
+                addToTerminal('[WARNING] CHECKER IS NOT RUNNING', 'warning');
+                return;
+            }
+
             isRunning = false;
             clearInterval(timerInterval);
-            document.getElementById('startBtn').style.display = 'inline-block';
-            document.getElementById('stopBtn').style.display = 'none';
-            document.getElementById('status').textContent = 'STATUS: STOPPED';
-            addToTerminal('[CHECKER] STOPPED BY USER');
+            startBtn.style.display = 'inline-block';
+            stopBtn.style.display = 'none';
+            statusText.textContent = 'STATUS: STOPPED';
+            addToTerminal('[CHECKER] STOPPED BY USER', 'warning');
         }
 
-        // Simulate Checker Logic
+        // SIMULATE CHECKING LOGIC
         async function simulateChecking() {
             for (let i = 0; i < accountList.length && isRunning; i++) {
                 const acc = accountList[i];
-                addToTerminal(`[CHECKING] #${i+1} | USER: ${acc.username}`);
+                addToTerminal(`[CHECKING] #${i+1}/${stats.total} | USER: ${acc.username}`);
                 
-                // Simulate API Delay
+                // SIMULATE API DELAY
                 await new Promise(resolve => setTimeout(resolve, 500));
                 
-                // Random Mock Result
-                const isSuccess = Math.random() > 0.4;
-                if (isSuccess) {
-                    stats.valid++;
-                    const hasCodm = Math.random() > 0.1;
-                    const isClean = Math.random() > 0.3;
-                    
-                    if (hasCodm) stats.hasCodm++;
-                    else stats.noCodm++;
-                    if (isClean) stats.clean++;
-                    else stats.unclean++;
-
-                    // Mock CODM Details
-                    addToTerminal(`[VALID] ${acc.username}`);
-                    addToTerminal(`  ├─ GARENA SHELLS: 0`);
-                    addToTerminal(`  ├─ AVATAR URL: https://example.com/avatar.jpg`);
-                    addToTerminal(`  ├─ MOBILE: ****${Math.floor(Math.random()*9000)+1000}`);
-                    addToTerminal(`  ├─ EMAIL: ****@${Math.random()>0.5?'gmail':'yahoo'}.com (${Math.random()>0.5?'VERIFIED':'NOT VERIFIED'})`);
-                    addToTerminal(`  ├─ GAME CONNECTIONS: [ CODM ]`);
-                    addToTerminal(`  ├─ ────────────────────`);
-                    addToTerminal(`  ├─ CODM NICKNAME: ${generateRandomNick()}`);
-                    addToTerminal(`  ├─ CODM UID: ${Math.floor(Math.random()*9000000)+1000000}`);
-                    addToTerminal(`  ├─ CODM LEVEL: ${Math.floor(Math.random()*300)+1}`);
-                    addToTerminal(`  ├─ ────────────────────`);
-                    addToTerminal(`  ├─ MOBILE BOUND: ${Math.random()>0.5?'YES':'NO'}`);
-                    addToTerminal(`  ├─ EMAIL VERIFIED: ${Math.random()>0.5?'TRUE':'FALSE'}`);
-                    addToTerminal(`  ├─ ACCOUNT STATUS: ${isClean?'CLEAN':'UNCLEAN'}`);
-                } else {
-                    stats.invalid++;
-                    addToTerminal(`[INVALID] ${acc.username} | ERROR: ${Math.random()>0.5?'WRONG CREDENTIALS':'ACCOUNT NOT FOUND'}`);
-                }
-                updateStats();
-            }
-
-            // Finish Checking
-            if (isRunning) {
-                stopChecker();
-                document.getElementById('status').textContent = 'STATUS: COMPLETED';
-                addToTerminal('[CHECKER] ALL ACCOUNTS PROCESSED');
-            }
-        }
-
-        // Helper: Generate Random Nickname
-        function generateRandomNick() {
-            const prefixes = ['PAIN_', 'COD_', 'PRO_', 'NOOB_', 'KING_', 'QUEEN_', 'BOSS_'];
-            const suffixes = ['PLAY', 'GAMER', '123', 'X', 'Z', '99', 'PRO'];
-            return prefixes[Math.floor(Math.random()*prefixes.length)] + suffixes[Math.floor(Math.random()*suffixes.length)];
-        }
-
-        // Add Line to Terminal
-        function addToTerminal(text) {
-            const terminal = document.getElementById('terminalSection');
-            const log = document.createElement('div');
-            log.className = 'terminal-log';
-            log.textContent = text;
-            terminal.appendChild(log);
-            terminal.scrollTop = terminal.scrollHeight;
-        }
-
-        // Update Stats Cards
-        function updateStats() {
-            document.getElementById('statTotal').textContent = stats.total;
-            document.getElementById('statTime').textContent = stats.time;
-            document.getElementById('statValid').textContent = stats.valid;
+                // RANDOM RESULT
+                const is
